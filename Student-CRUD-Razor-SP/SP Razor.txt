@@ -40,48 +40,13 @@ BEGIN
 SELECT * FROM Students
 END
 
-using Microsoft.EntityFrameworkCore;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
-public class AppDbContext : DbContext
-{
-    public DbSet<Student> Students { get; set; }
-
-    public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
-
-    // CREATE Student
-    public async Task<int> CreateStudentAsync(Student student)
-    {
-        return await Database.ExecuteSqlRawAsync("EXEC CreateStudent @p0, @p1, @p2, @p3",
-            student.Name, student.Email, student.Phone, student.Subscribed);
-    }
-
-    // GET ALL Students
-    public async Task<List<Student>> GetStudentsAsync()
-    {
-        return await Students.FromSqlRaw("EXEC GetStudents").ToListAsync();
-    }
-
-    // GET Student by ID
-    public async Task<Student> GetStudentByIdAsync(int id)
-    {
-        return await Students.FromSqlRaw("EXEC GetStudentById @p0", id).FirstOrDefaultAsync();
-    }
-
-    // UPDATE Student
-    public async Task<int> UpdateStudentAsync(Student student)
-    {
-        return await Database.ExecuteSqlRawAsync("EXEC UpdateStudent @p0, @p1, @p2, @p3, @p4",
-            student.Id, student.Name, student.Email, student.Phone, student.Subscribed);
-    }
-
-    // DELETE Student
-    public async Task<int> DeleteStudentAsync(int id)
-    {
-        return await Database.ExecuteSqlRawAsync("EXEC DeleteStudent @p0", id);
-    }
-}
+-- Details Store Procedure --
+CREATE PROCEDURE GetStudentById
+	@Id INT
+AS
+BEGIN
+	SELECT * FROM Students WHERE Id = @Id;
+END
 
 
