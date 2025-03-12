@@ -1,0 +1,87 @@
+-- Create Store Procedure --
+CREATE PROCEDURE CreateStudent
+	@Name NVARCHAR (100),
+	@Email varchar(20),
+	@Phone varchar(15),
+	@Subscribed BIT
+
+AS
+BEGIN
+insert into Students (Name, Email, Phone, Subscribed)
+VALUES (@Name, @Email, @Phone, @Subscribed);
+END
+
+-- Update Store Procedure --
+CREATE  PROCEDURE UpdateStudent
+	@Id INT,
+	@Name NVARCHAR(100),
+    @Email NVARCHAR(20),
+    @Phone NVARCHAR(15),
+    @Subscribed BIT
+AS
+BEGIN
+	UPDATE Students
+	SET Name = @Name, Email = @Email, Phone = @Phone, Subscribed = @Subscribed
+	WHERE Id = @Id
+END
+
+-- Delete Store Procedure --
+CREATE PROCEDURE DeleteStudent
+	@Id INT
+AS
+BEGIN
+	DELETE FROM Students WHERE Id = @Id
+END
+
+-- Read Store Procedure --
+CREATE Procedure GetStudentLst
+AS
+BEGIN
+SELECT * FROM Students
+END
+
+using Microsoft.EntityFrameworkCore;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+
+public class AppDbContext : DbContext
+{
+    public DbSet<Student> Students { get; set; }
+
+    public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
+
+    // CREATE Student
+    public async Task<int> CreateStudentAsync(Student student)
+    {
+        return await Database.ExecuteSqlRawAsync("EXEC CreateStudent @p0, @p1, @p2, @p3",
+            student.Name, student.Email, student.Phone, student.Subscribed);
+    }
+
+    // GET ALL Students
+    public async Task<List<Student>> GetStudentsAsync()
+    {
+        return await Students.FromSqlRaw("EXEC GetStudents").ToListAsync();
+    }
+
+    // GET Student by ID
+    public async Task<Student> GetStudentByIdAsync(int id)
+    {
+        return await Students.FromSqlRaw("EXEC GetStudentById @p0", id).FirstOrDefaultAsync();
+    }
+
+    // UPDATE Student
+    public async Task<int> UpdateStudentAsync(Student student)
+    {
+        return await Database.ExecuteSqlRawAsync("EXEC UpdateStudent @p0, @p1, @p2, @p3, @p4",
+            student.Id, student.Name, student.Email, student.Phone, student.Subscribed);
+    }
+
+    // DELETE Student
+    public async Task<int> DeleteStudentAsync(int id)
+    {
+        return await Database.ExecuteSqlRawAsync("EXEC DeleteStudent @p0", id);
+    }
+}
+
+
